@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Tableau de bord Club Informatique Pigier (CLIP-CI)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-brand">
+      <span class="pulse-dot" aria-hidden="true"></span>
+      <h1>Tableau de bord du club</h1>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="theme-toggle" id="themeToggle" aria-label="Changer le thème" title="Thème clair / sombre">
+        <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+      </button>
+      <div class="topbar-user" id="topActions" hidden>
+        <span class="who" id="who"></span>
+        <button type="button" class="btn light" id="logout">Se déconnecter</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="login stagger" style="--d: 40ms" id="loginView" hidden>
+    <h2>Connexion</h2>
+    <p class="intro" style="margin:0;color:var(--muted)">Cet espace est réservé à l'administrateur du club.</p>
+    <form id="loginForm" novalidate aria-label="Connexion administrateur">
+      <div class="field">
+        <label for="email">Adresse e-mail</label>
+        <input type="email" id="email" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" autocomplete="current-password">
+      </div>
+      <p class="err" id="loginMsg" role="alert"></p>
+      <button type="submit" class="btn" id="loginBtn">Se connecter</button>
+    </form>
+  </section>
+
+  <section class="dash" id="dashView" hidden>
+    <div class="stats" id="stats"></div>
+
+    <div class="toolbar">
+      <div class="field">
+        <label for="q">Rechercher</label>
+        <input type="search" id="q" placeholder="Nom, prénom, classe ou motivation">
+      </div>
+      <div class="field">
+        <label for="domFilter">Domaine</label>
+        <select id="domFilter"><option value="">Tous les domaines</option></select>
+      </div>
+      <div class="field" style="flex: 0 1 12rem;">
+        <label for="sortOrder">Trier par</label>
+        <select id="sortOrder">
+          <option value="date-desc">Plus récentes</option>
+          <option value="date-asc">Plus anciennes</option>
+          <option value="nom-asc">Nom (A → Z)</option>
+          <option value="classe-asc">Classe (A → Z)</option>
+        </select>
+      </div>
+      <button type="button" class="btn ghost" id="refresh">Actualiser</button>
+      <button type="button" class="btn" id="exportCsv">Exporter en CSV</button>
+    </div>
+
+    <p class="status" id="status" role="status">Chargement des demandes…</p>
+
+    <div class="tablewrap" id="tableWrap" hidden>
+      <table>
+        <thead>
+          <tr><th>Reçue le</th><th>Nom</th><th>Prénom</th><th>Classe</th><th>Domaines</th><th>Motivation</th><th><span class="sr-only">Actions</span></th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function () {
+  var DOMAINS = [
+    "Développement web",
+    "Développement mobile",
+    "Cybersécurité",
+    "Réseaux et systèmes",
+    "Intelligence artificielle",
+    "Données et bases de données",
+    "Design UI/UX"
+  ];
+
+  function $(id) { return document.getElementById(id); }
+
+  /* Gestion du thème clair/sombre */
+  var savedTheme = localStorage.getItem("clip_theme");
+  if (savedTheme === "dark" || savedTheme === "light") {
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }
+  $("themeToggle").addEventListener("click", function () {
+    var current = document.documentElement.getAttribute("data-theme");
+    var isDark = current === "dark" || (!current && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var next = isDark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("clip_theme", next);
+  });
+
+  var cfg = window.CONFIG || {};
+  var configured = /^https:\/\//.test(String(cfg.SUPABASE_URL || "")) && !/VOTRE/.test(String(cfg.SUPABASE_URL)) &&
+    cfg.SUPABASE_ANON_KEY && !/VOTRE/.test(String(cfg.SUPABASE_ANON_KEY));
+  var sb = (configured && window.supabase) ? window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY) : null;
+
+  var rows = [];
+  var pendingDelete = null;
+  var pendingTimer = null;
+  var animateStatsNext = true;
+
+  var sr = document.createElement("style");
+  sr.textContent = ".sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}";
+  document.head.appendChild(sr);
+
+  DOMAINS.forEach(function (d) {
+    var o = document.createElement("option");
+    o.value = d; o.textContent = d;
+    $("domFilter").appendChild(o);
+  });
+
+  function show(view) {
+    $("loginView").hidden = view !== "login";
+    $("dashView").hidden = view !== "dash";
+    $("topActions").hidden = view !== "dash";
+    if (view === "dash") {
+      $("dashView").classList.add("view-enter");
+    }
+  }
+
+  function setStatus(text) {
+    $("status").hidden = !text;
+    $("status").textContent = text || "";
+  }
+
+  /* ---------- Connexion ---------- */
+  async function boot() {
+    if (!sb) {
+      show("login");
+      $("loginMsg").textContent = "Le tableau de bord n'est pas encore connecté à sa base de données. Renseignez le fichier config.js.";
+      $("loginBtn").disabled = true;
+      return;
+    }
+    sb.auth.onAuthStateChange(function (evt) {
+      if (evt === "SIGNED_OUT") { rows = []; show("login"); }
+    });
+    var res = await sb.auth.getSession();
+    if (res.data && res.data.session) await enter(res.data.session);
+    else show("login");
+  }
+
+  async function enter(session) {
+    $("who").textContent = (session.user && session.user.email) || "";
+    show("dash");
+    await load();
+  }
+
+  $("loginForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (!sb) return;
+    var email = $("email").value.trim();
+    var password = $("password").value;
+    if (!email || !password) {
+      $("loginMsg").textContent = "Entrez votre adresse e-mail et votre mot de passe.";
+      $("loginView").classList.remove("shake");
+      void $("loginView").offsetWidth;
+      $("loginView").classList.add("shake");
+      return;
+    }
+    $("loginBtn").disabled = true;
+    $("loginBtn").textContent = "Connexion…";
+    $("loginMsg").textContent = "";
+    var res = await sb.auth.signInWithPassword({ email: email, password: password });
+    $("loginBtn").disabled = false;
+    $("loginBtn").textContent = "Se connecter";
+    if (res.error || !res.data || !res.data.session) {
+      $("loginMsg").textContent = "Adresse e-mail ou mot de passe incorrect.";
+      $("loginView").classList.remove("shake");
+      void $("loginView").offsetWidth;
+      $("loginView").classList.add("shake");
+      return;
+    }
+    $("password").value = "";
+    await enter(res.data.session);
+  });
+
+  $("logout").addEventListener("click", async function () {
+    if (sb) await sb.auth.signOut();
+    rows = [];
+    show("login");
+  });
+
+  /* ---------- Données ---------- */
+  async function load() {
+    setStatus("Chargement des demandes…");
+    $("tableWrap").hidden = true;
+    $("refresh").classList.add("is-spinning");
+    var res = await sb.from("inscriptions").select("*").order("created_at", { ascending: false }).limit(2000);
+    $("refresh").classList.remove("is-spinning");
+    if (res.error) {
+      setStatus("Impossible de charger les demandes. Reconnectez-vous ou réessayez dans un instant.");
+      return;
+    }
+    rows = res.data || [];
+    animateStatsNext = true;
+    render();
+  }
+
+  function filtered() {
+    var q = $("q").value.trim().toLowerCase();
+    var dom = $("domFilter").value;
+    var sort = $("sortOrder").value;
+
+    var list = rows.filter(function (r) {
+      if (dom && (r.domaines || []).indexOf(dom) === -1) return false;
+      if (!q) return true;
+      var hay = [r.nom, r.prenom, r.classe, r.motif].join(" ").toLowerCase();
+      return hay.indexOf(q) !== -1;
+    });
+
+    list.sort(function (a, b) {
+      if (sort === "date-asc") return new Date(a.created_at) - new Date(b.created_at);
+      if (sort === "nom-asc") return String(a.nom || "").localeCompare(String(b.nom || ""), "fr");
+      if (sort === "classe-asc") return String(a.classe || "").localeCompare(String(b.classe || ""), "fr");
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+
+    return list;
+  }
+
+  function animateValue(el, target) {
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced || target <= 1) {
+      el.textContent = String(target);
+      return;
+    }
+    var start = 0;
+    var duration = 420;
+    var startTime = performance.now();
+    function step(now) {
+      var progress = Math.min((now - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = String(Math.round(start + (target - start) * eased));
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function renderStats() {
+    var box = $("stats");
+    box.textContent = "";
+    function stat(n, label, cls) {
+      var s = document.createElement("div");
+      s.className = "stat-card" + (cls ? " " + cls : "");
+      var b = document.createElement("b");
+      if (animateStatsNext) animateValue(b, n);
+      else b.textContent = String(n);
+      var t = document.createElement("span"); t.textContent = label;
+      s.appendChild(b); s.appendChild(t);
+      box.appendChild(s);
+    }
+    stat(rows.length, rows.length > 1 ? "demandes au total" : "demande au total", "total");
+    DOMAINS.forEach(function (d) {
+      var n = rows.filter(function (r) { return (r.domaines || []).indexOf(d) !== -1; }).length;
+      if (n) stat(n, d);
+    });
+    animateStatsNext = false;
+  }
+
+  function render() {
+    renderStats();
+    var list = filtered();
+    var body = $("rows");
+    body.textContent = "";
+
+    if (!rows.length) {
+      setStatus("Aucune demande pour l'instant. Elles apparaîtront ici dès que quelqu'un enverra le formulaire.");
+      $("tableWrap").hidden = true;
+      return;
+    }
+    if (!list.length) {
+      setStatus("Aucun résultat pour cette recherche.");
+      $("tableWrap").hidden = true;
+      return;
+    }
+    setStatus(list.length === rows.length ? "" : list.length + " sur " + rows.length + " demandes affichées.");
+    $("tableWrap").hidden = false;
+
+    list.forEach(function (r, idx) {
+      var tr = document.createElement("tr");
+      tr.className = "row-enter";
+      tr.style.setProperty("--d", Math.min(idx * 25, 350) + "ms");
+      tr.setAttribute("data-row-id", r.id);
+
+      var when = new Date(r.created_at);
+      var whenText = isNaN(when.getTime()) ? "" : when.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
+
+      /* Cellules standard */
+      var tdDate = document.createElement("td"); tdDate.className = "nowrap"; tdDate.textContent = whenText; tr.appendChild(tdDate);
+      var tdNom = document.createElement("td"); tdNom.style.fontWeight = "600"; tdNom.textContent = r.nom || ""; tr.appendChild(tdNom);
+      var tdPrenom = document.createElement("td"); tdPrenom.textContent = r.prenom || ""; tr.appendChild(tdPrenom);
+
+      var tdClasse = document.createElement("td");
+      var badgeClasse = document.createElement("span");
+      badgeClasse.className = "classe-pill";
+      badgeClasse.textContent = r.classe || "";
+      tdClasse.appendChild(badgeClasse);
+      tr.appendChild(tdClasse);
+
+      /* Domaines sous forme de badges */
+      var tdDom = document.createElement("td");
+      var domWrap = document.createElement("div");
+      domWrap.className = "tbl-tags";
+      (r.domaines || []).forEach(function (d) {
+        var span = document.createElement("span");
+        span.className = "tbl-tag";
+        span.textContent = d;
+        domWrap.appendChild(span);
+      });
+      tdDom.appendChild(domWrap);
+      tr.appendChild(tdDom);
+
+      var tdMotif = document.createElement("td"); tdMotif.className = "motif"; tdMotif.textContent = r.motif || ""; tr.appendChild(tdMotif);
+
+      var act = document.createElement("td");
+      act.className = "nowrap";
+      var btn = document.createElement("button");
+      btn.type = "button";
+      var armed = pendingDelete === r.id;
+      btn.className = armed ? "btn danger pulse-danger" : "btn ghost";
+      btn.textContent = armed ? "Confirmer ?" : "Supprimer";
+      btn.addEventListener("click", function () { onDelete(r.id, tr); });
+      act.appendChild(btn);
+      tr.appendChild(act);
+      body.appendChild(tr);
+    });
+  }
+
+  async function onDelete(id, trElement) {
+    if (pendingDelete !== id) {
+      pendingDelete = id;
+      clearTimeout(pendingTimer);
+      pendingTimer = setTimeout(function () { pendingDelete = null; render(); }, 5000);
+      render();
+      return;
+    }
+    clearTimeout(pendingTimer);
+    pendingDelete = null;
+    var res = await sb.from("inscriptions").delete().eq("id", id).select();
+    if (res.error || !res.data || !res.data.length) {
+      setStatus("La suppression a échoué. Réessayez.");
+      return;
+    }
+    if (trElement) {
+      trElement.classList.add("row-exit");
+      await new Promise(function (resolve) { setTimeout(resolve, 220); });
+    }
+    rows = rows.filter(function (r) { return r.id !== id; });
+    animateStatsNext = true;
+    render();
+  }
+
+  $("q").addEventListener("input", function () { pendingDelete = null; render(); });
+  $("domFilter").addEventListener("change", function () { pendingDelete = null; render(); });
+  $("sortOrder").addEventListener("change", function () { pendingDelete = null; render(); });
+  $("refresh").addEventListener("click", load);
+
+  /* ---------- Export CSV (lisible par Excel) ---------- */
+  function csvCell(v) {
+    var s = String(v == null ? "" : v).replace(/?
+/g, " ");
+    if (/^[=+\-@	]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+  $("exportCsv").addEventListener("click", function () {
+    var list = filtered();
+    if (!list.length) { setStatus("Rien à exporter pour le moment."); return; }
+    var lines = [["Reçue le", "Nom", "Prénom", "Classe", "Domaines", "Motivation"].map(csvCell).join(";")];
+    list.forEach(function (r) {
+      lines.push([r.created_at, r.nom, r.prenom, r.classe, (r.domaines || []).join(" / "), r.motif].map(csvCell).join(";"));
+    });
+    var blob = new Blob(["﻿" + lines.join("
+")], { type: "text/csv;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "demandes-club-informatique.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  });
+
+  boot();
+})();
+</script>
+</body>
+</html>

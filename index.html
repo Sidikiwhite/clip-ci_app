@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Adhésion Club Informatique Pigier (CLIP-CI)</title>
+<meta name="description" content="Formulaire d'adhésion au club informatique de Pigier.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="panel">
+    <div class="panel-grid" aria-hidden="true"></div>
+    <div class="panel-glow" aria-hidden="true"></div>
+    <div class="panel-inner">
+      <header class="stagger" style="--d: 0ms">
+        <div class="panel-top-bar">
+          <div class="badge-live">
+            <span class="pulse-dot" aria-hidden="true"></span>
+            <span>Inscriptions ouvertes • CLIP-CI</span>
+          </div>
+          <button type="button" class="theme-toggle" id="themeToggle" aria-label="Changer le thème" title="Thème clair / sombre">
+            <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+            <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+          </button>
+        </div>
+        <h1>Rejoindre le club informatique de Pigier</h1>
+        <p class="lead">Répondez aux questions, envoyez votre demande, et nous vous ajoutons au groupe du club.</p>
+      </header>
+
+      <div class="card-wrapper stagger" style="--d: 100ms">
+        <div class="card" id="memberCard" aria-hidden="true">
+          <div class="card-shine" id="cardShine"></div>
+          <div class="card-top">
+            <span class="card-brand">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              Club Informatique
+            </span>
+            <span class="card-school">PIGIER</span>
+          </div>
+          <div class="card-identity">
+            <p class="card-name ph" id="cardName">Prénom Nom</p>
+            <p class="card-classe ph" id="cardClasse">Classe</p>
+          </div>
+          <div class="card-foot">
+            <div class="card-tags" id="cardTags"></div>
+            <div class="card-meta-row">
+              <p class="card-status" id="cardStatus">Adhésion en cours de saisie</p>
+              <span class="card-id" id="cardId">#MEMBRE-2026</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-box">
+          <div class="progress-head">
+            <span>Complétion du dossier</span>
+            <span id="progressText">0 / 5</span>
+          </div>
+          <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-col">
+    <div class="col-inner">
+      <section class="view" id="formView">
+        <p class="intro stagger" style="--d: 80ms">Tous les champs sont obligatoires.</p>
+        <form id="form" novalidate aria-label="Demande d'adhésion">
+          <div class="row stagger" style="--d: 130ms">
+            <div class="field" id="wrap-nom">
+              <label for="nom">Nom</label>
+              <input type="text" id="nom" name="nom" autocomplete="family-name" maxlength="80">
+              <p class="err" id="err-nom" role="alert"></p>
+            </div>
+            <div class="field" id="wrap-prenom">
+              <label for="prenom">Prénom</label>
+              <input type="text" id="prenom" name="prenom" autocomplete="given-name" maxlength="80">
+              <p class="err" id="err-prenom" role="alert"></p>
+            </div>
+          </div>
+
+          <div class="field stagger" style="--d: 180ms" id="wrap-classe">
+            <label for="classe">Classe</label>
+            <input type="text" id="classe" name="classe" placeholder="RGL..., CF..., CDM..." maxlength="60">
+            <p class="err" id="err-classe" role="alert"></p>
+          </div>
+
+          <fieldset id="domaines" class="stagger" style="--d: 230ms">
+            <legend>Domaines qui vous intéressent <span class="hint">(choisissez-en au moins un)</span></legend>
+            <div class="chips" id="chips"></div>
+            <p class="err" id="err-domaines" role="alert"></p>
+          </fieldset>
+
+          <div class="field stagger" style="--d: 280ms" id="wrap-motif">
+            <div class="label-row">
+              <label for="motif">Pourquoi voulez-vous adhérer au club ?</label>
+              <span class="char-count" id="charCount">0 / 1000</span>
+            </div>
+            <textarea id="motif" name="motif" maxlength="1000"></textarea>
+            <p class="err" id="err-motif" role="alert"></p>
+          </div>
+
+          <div class="hp" aria-hidden="true">
+            <label>Ne pas remplir ce champ <input type="text" id="website" name="website" tabindex="-1" autocomplete="off"></label>
+          </div>
+
+          <p class="err" id="err-global" role="alert"></p>
+          <div class="stagger" style="--d: 330ms">
+            <button type="submit" class="btn btn-submit" id="submitBtn">
+              <span class="btn-label">Envoyer ma demande</span>
+              <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="view" id="doneView" hidden>
+        <div class="done">
+          <div class="done-icon" aria-hidden="true">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h2 id="doneTitle" tabindex="-1">Demande envoyée</h2>
+          <p>Vous allez être ajouté au groupe bientôt. Vous pouvez dès maintenant télécharger votre carte de membre provisoire en PDF.</p>
+
+          <div class="done-actions">
+            <button type="button" class="btn btn-pdf" id="downloadPdfBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Télécharger ma carte de membre (PDF)</span>
+            </button>
+          </div>
+
+          <dl class="recap" id="recap"></dl>
+        </div>
+      </section>
+
+      <p class="note">Ce formulaire est géré par le club informatique. Ce n'est pas le site officiel de l'école.</p>
+    </div>
+  </main>
+</div>
+
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script>
+(function () {
+  var DOMAINS = [
+    "Développement web",
+    "Développement mobile",
+    "Cybersécurité",
+    "Réseaux et systèmes",
+    "Intelligence artificielle",
+    "Données et bases de données",
+    "Design UI/UX"
+  ];
+
+  function $(id) { return document.getElementById(id); }
+  var form = $("form"), chips = $("chips"), submitBtn = $("submitBtn");
+  var lastSubmitted = null;
+  var memberCode = "CLIP-" + Math.floor(1000 + Math.random() * 9000);
+  $("cardId").textContent = "#" + memberCode;
+
+  /* Gestion du thème clair/sombre */
+  var savedTheme = localStorage.getItem("clip_theme");
+  if (savedTheme === "dark" || savedTheme === "light") {
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }
+  $("themeToggle").addEventListener("click", function () {
+    var current = document.documentElement.getAttribute("data-theme");
+    var isDark = current === "dark" || (!current && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    var next = isDark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    localStorage.setItem("clip_theme", next);
+  });
+
+  /* Effet 3D / reflet lumineux subtil sur la carte */
+  var card = $("memberCard"), shine = $("cardShine");
+  if (card && shine && window.matchMedia && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    card.addEventListener("mousemove", function (e) {
+      var rect = card.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      var rx = ((y / rect.height) - 0.5) * -8;
+      var ry = ((x / rect.width) - 0.5) * 8;
+      card.style.transform = "perspective(700px) rotateX(" + rx.toFixed(2) + "deg) rotateY(" + ry.toFixed(2) + "deg)";
+      shine.style.background = "radial-gradient(circle at " + x + "px " + y + "px, rgba(255,255,255,0.22), transparent 65%)";
+    });
+    card.addEventListener("mouseleave", function () {
+      card.style.transform = "";
+      shine.style.background = "";
+    });
+  }
+
+  var cfg = window.CONFIG || {};
+  var configured = /^https:\/\//.test(String(cfg.SUPABASE_URL || "")) && !/VOTRE/.test(String(cfg.SUPABASE_URL)) &&
+    cfg.SUPABASE_ANON_KEY && !/VOTRE/.test(String(cfg.SUPABASE_ANON_KEY));
+  var sb = (configured && window.supabase) ? window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY) : null;
+
+  DOMAINS.forEach(function (d, i) {
+    var l = document.createElement("label");
+    l.className = "chip";
+    var c = document.createElement("input");
+    c.type = "checkbox"; c.name = "domaine"; c.value = d; c.id = "dom" + i;
+    var b = document.createElement("span");
+    b.className = "box"; b.setAttribute("aria-hidden", "true");
+    var s = document.createElement("span");
+    s.textContent = d;
+    l.appendChild(c); l.appendChild(b); l.appendChild(s);
+    chips.appendChild(l);
+  });
+
+  function picked() {
+    return Array.prototype.map.call(chips.querySelectorAll("input:checked"), function (i) { return i.value; });
+  }
+
+  function pulseCard() {
+    card.classList.remove("card-pulse");
+    void card.offsetWidth;
+    card.classList.add("card-pulse");
+  }
+
+  /* Carte d'adhérent en direct + jauge de progression */
+  var prevTags = [];
+  function updateCard(triggerPulse) {
+    var nomVal = $("nom").value.trim();
+    var prenomVal = $("prenom").value.trim();
+    var clVal = $("classe").value.trim();
+    var motifVal = $("motif").value.trim();
+    var sel = picked();
+
+    var full = (prenomVal + " " + nomVal).trim();
+    $("cardName").textContent = full || "Prénom Nom";
+    $("cardName").classList.toggle("ph", !full);
+
+    $("cardClasse").textContent = clVal || "Classe";
+    $("cardClasse").classList.toggle("ph", !clVal);
+
+    var tags = $("cardTags");
+    tags.textContent = "";
+    if (!sel.length) {
+      var p = document.createElement("span");
+      p.className = "tag ph"; p.textContent = "Domaines";
+      tags.appendChild(p);
+    } else {
+      sel.forEach(function (v) {
+        var t = document.createElement("span");
+        t.className = "tag" + (prevTags.indexOf(v) === -1 ? " tag-pop" : "");
+        t.textContent = v;
+        tags.appendChild(t);
+      });
+    }
+    prevTags = sel.slice();
+
+    /* Calcul progression */
+    var score = 0;
+    if (nomVal) score++;
+    if (prenomVal) score++;
+    if (clVal) score++;
+    if (sel.length) score++;
+    if (motifVal) score++;
+
+    $("progressText").textContent = score + " / 5";
+    $("progressFill").style.width = (score * 20) + "%";
+    $("progressBar").setAttribute("aria-valuenow", String(score));
+
+    if (triggerPulse) pulseCard();
+  }
+
+  ["prenom", "nom", "classe"].forEach(function (k) {
+    $(k).addEventListener("input", function () { updateCard(true); });
+  });
+  chips.addEventListener("change", function () { updateCard(true); });
+  $("motif").addEventListener("input", function () {
+    $("charCount").textContent = $("motif").value.length + " / 1000";
+    updateCard(false);
+  });
+  updateCard(false);
+
+  function setErr(key, msg) {
+    $("err-" + key).textContent = msg || "";
+    var f = $(key);
+    if (f && f.matches("input, textarea")) f.setAttribute("aria-invalid", msg ? "true" : "false");
+    var wrap = $("wrap-" + key) || (key === "domaines" ? $("domaines") : null);
+    if (wrap && msg) {
+      wrap.classList.remove("shake");
+      void wrap.offsetWidth;
+      wrap.classList.add("shake");
+    }
+  }
+  ["nom", "prenom", "classe", "motif"].forEach(function (k) {
+    $(k).addEventListener("input", function () { setErr(k, ""); });
+  });
+  chips.addEventListener("change", function () { setErr("domaines", ""); });
+
+  function collect() {
+    return {
+      nom: $("nom").value.trim(),
+      prenom: $("prenom").value.trim(),
+      classe: $("classe").value.trim(),
+      domaines: picked(),
+      motif: $("motif").value.trim()
+    };
+  }
+
+  function validate(r) {
+    var first = null;
+    function bad(key, msg, focusId) { setErr(key, msg); if (!first) first = $(focusId || key); }
+    setErr("nom", ""); setErr("prenom", ""); setErr("classe", ""); setErr("domaines", ""); setErr("motif", ""); setErr("global", "");
+    if (!r.nom) bad("nom", "Entrez votre nom.");
+    if (!r.prenom) bad("prenom", "Entrez votre prénom.");
+    if (!r.classe) bad("classe", "Indiquez votre classe.");
+    if (!r.domaines.length) bad("domaines", "Choisissez au moins un domaine.", "dom0");
+    if (!r.motif) bad("motif", "Expliquez pourquoi vous voulez adhérer.");
+    if (first) { first.focus(); return false; }
+    return true;
+  }
+
+  /* Génération PDF de la carte de membre (format badge / carte de visite 90x56 mm) */
+  function generateMemberPdf(r) {
+    if (!window.jspdf || !window.jspdf.jsPDF) {
+      alert("Le module PDF n'a pas pu se charger. Vérifiez votre connexion Internet.");
+      return;
+    }
+    var jsPDF = window.jspdf.jsPDF;
+    var doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: [90, 56]
+    });
+
+    /* Fond principal bleu nuit */
+    doc.setFillColor(10, 42, 107);
+    doc.rect(0, 0, 90, 56, "F");
+
+    /* Bande d'accentuation bleu électrique à gauche et en haut */
+    doc.setFillColor(20, 80, 200);
+    doc.rect(0, 0, 90, 13, "F");
+
+    /* Grille décorative discrète en fond */
+    doc.setDrawColor(26, 66, 148);
+    doc.setLineWidth(0.15);
+    for (var gx = 10; gx < 90; gx += 10) {
+      doc.line(gx, 13, gx, 56);
+    }
+    for (var gy = 20; gy < 56; gy += 10) {
+      doc.line(0, gy, 90, gy);
+    }
+
+    /* Bordure fine intérieure */
+    doc.setDrawColor(127, 166, 255);
+    doc.setLineWidth(0.35);
+    doc.roundedRect(2.5, 2.5, 85, 51, 2.5, 2.5, "S");
+
+    /* En-tête carte */
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text("CLUB INFORMATIQUE • CLIP-CI", 5.5, 8.2);
+
+    doc.setFontSize(8);
+    doc.setTextColor(195, 211, 247);
+    doc.text("PIGIER", 84.5, 8.2, { align: "right" });
+
+    /* Identité du membre */
+    var fullName = (r.prenom + " " + r.nom.toUpperCase()).trim();
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(fullName.length > 24 ? 11.5 : 13.5);
+    doc.text(fullName, 5.5, 21.5, { maxWidth: 79 });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8.5);
+    doc.setTextColor(195, 211, 247);
+    doc.text("Classe : " + r.classe, 5.5, 27.5);
+
+    /* Domaines choisis sous forme de pilules */
+    var xCursor = 5.5;
+    var yCursor = 32;
+    doc.setFontSize(6.3);
+    doc.setFont("helvetica", "bold");
+    r.domaines.forEach(function (dom) {
+      var textW = doc.getTextWidth(dom);
+      var pillW = textW + 4;
+      if (xCursor + pillW > 84.5) {
+        xCursor = 5.5;
+        yCursor += 5.5;
+      }
+      if (yCursor <= 43) {
+        doc.setFillColor(20, 80, 200);
+        doc.setDrawColor(127, 166, 255);
+        doc.setLineWidth(0.2);
+        doc.roundedRect(xCursor, yCursor, pillW, 4.3, 1, 1, "FD");
+        doc.setTextColor(255, 255, 255);
+        doc.text(dom, xCursor + 2, yCursor + 3);
+        xCursor += pillW + 1.8;
+      }
+    });
+
+    /* Pied de carte */
+    doc.setDrawColor(56, 98, 184);
+    doc.setLineWidth(0.2);
+    doc.line(5.5, 47.5, 84.5, 47.5);
+
+    var todayStr = new Date().toLocaleDateString("fr-FR");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(6.8);
+    doc.setTextColor(195, 211, 247);
+    doc.text("Statut : Adhésion enregistrée (" + todayStr + ")", 5.5, 51.2);
+
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(127, 166, 255);
+    doc.text("#" + memberCode, 84.5, 51.2, { align: "right" });
+
+    var safeFile = ("carte-membre-" + r.prenom + "-" + r.nom)
+      .toLowerCase()
+      .normalize("NFD").replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "carte-membre-clip-ci";
+
+    doc.save(safeFile + ".pdf");
+  }
+
+  $("downloadPdfBtn").addEventListener("click", function () {
+    if (lastSubmitted) generateMemberPdf(lastSubmitted);
+  });
+
+  function showDone(r) {
+    lastSubmitted = r;
+    $("formView").hidden = true;
+    $("doneView").hidden = false;
+    $("doneView").classList.add("view-enter");
+    $("cardStatus").textContent = "Demande envoyée ✓";
+    card.classList.add("card-confirmed");
+    pulseCard();
+
+    var recap = $("recap");
+    recap.textContent = "";
+    [["Nom", r.nom], ["Prénom", r.prenom], ["Classe", r.classe], ["Domaines", r.domaines.join(", ")], ["Motivation", r.motif]].forEach(function (p, idx) {
+      var dt = document.createElement("dt"); dt.textContent = p[0];
+      var dd = document.createElement("dd"); dd.textContent = p[1];
+      dt.style.setProperty("--d", (idx * 50) + "ms");
+      dd.style.setProperty("--d", (idx * 50) + "ms");
+      dt.className = "recap-item";
+      dd.className = "recap-item";
+      recap.appendChild(dt); recap.appendChild(dd);
+    });
+    $("doneTitle").focus();
+    if (window.matchMedia && window.matchMedia("(max-width: 59.99rem)").matches) {
+      $("doneTitle").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var r = collect();
+    if (!validate(r)) return;
+
+    /* Champ piège : un robot le remplit, une personne ne le voit pas. */
+    if ($("website").value) { showDone(r); return; }
+
+    if (!sb) {
+      setErr("global", "Le formulaire n'est pas encore connecté à sa base de données. Prévenez l'administrateur du club.");
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.classList.add("is-loading");
+    submitBtn.querySelector(".btn-label").textContent = "Envoi en cours…";
+    var result;
+    try {
+      result = await sb.from("inscriptions").insert({
+        nom: r.nom, prenom: r.prenom, classe: r.classe, domaines: r.domaines, motif: r.motif
+      });
+    } catch (err) {
+      result = { error: err };
+    }
+    if (result && result.error) {
+      setErr("global", "Votre demande n'a pas pu être envoyée. Vérifiez votre connexion Internet, puis réessayez.");
+      submitBtn.disabled = false;
+      submitBtn.classList.remove("is-loading");
+      submitBtn.querySelector(".btn-label").textContent = "Envoyer ma demande";
+      return;
+    }
+    showDone(r);
+  });
+})();
+</script>
+</body>
+</html>
