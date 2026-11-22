@@ -65,6 +65,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body);
   font-size: 1rem; line-height: 1.55; transition: background-color .25s ease, color .25s ease;
@@ -82,8 +83,8 @@ h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 @keyframes cardPulse {
-  0% { box-shadow: 0 18px 40px -12px rgba(3, 14, 40, .55), 0 0 0 0 rgba(255, 255, 255, .45); }
-  100% { box-shadow: 0 18px 40px -12px rgba(3, 14, 40, .55), 0 0 0 10px rgba(255, 255, 255, 0); }
+  0% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -1px 0 rgba(6, 14, 30, .45), 0 18px 40px -12px rgba(3, 14, 40, .55), 0 0 0 0 rgba(255, 255, 255, .45); }
+  100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -1px 0 rgba(6, 14, 30, .45), 0 18px 40px -12px rgba(3, 14, 40, .55), 0 0 0 10px rgba(255, 255, 255, 0); }
 }
 @keyframes pulseDot {
   0%, 100% { transform: scale(1); opacity: 1; }
@@ -168,26 +169,55 @@ h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
 .panel h1 { font-weight: 700; font-size: clamp(2rem, 1.2rem + 3.4vw, 3.1rem); line-height: 1.04; letter-spacing: -.02em; }
 .lead { color: var(--panel-muted); margin: 1rem 0 0; max-width: 30rem; }
 
-/* Carte membre interactive */
+/* Carte membre interactive : métal brossé + gravure façon billet de banque */
 .card-wrapper { display: flex; flex-direction: column; gap: 1rem; width: 100%; max-width: 24rem; }
 .card {
   position: relative; overflow: hidden;
-  background: linear-gradient(145deg, #195CE0 0%, #103FA3 100%);
-  color: var(--card-fg); border: 1px solid var(--card-line); border-radius: 16px;
+  background:
+    radial-gradient(120% 90% at 84% 0%, rgba(255, 255, 255, .32) 0%, rgba(255, 255, 255, .05) 36%, transparent 62%),
+    repeating-linear-gradient(112deg, rgba(255, 255, 255, .06) 0 1px, rgba(4, 10, 22, .07) 1px 3px),
+    linear-gradient(132deg, #16202F 0%, #354762 16%, #6B7F9C 34%, #26344A 52%, #5A6E8B 70%, #1D2A40 86%, #0F1725 100%);
+  color: var(--card-fg); border: 1px solid rgba(255, 255, 255, .42); border-radius: 16px;
   padding: 1.35rem; display: flex; flex-direction: column; gap: 1.35rem; min-height: 13.5rem;
-  box-shadow: 0 18px 40px -12px rgba(3, 14, 40, .55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .6),
+    inset 0 -1px 0 rgba(6, 14, 30, .45),
+    inset 1px 0 0 rgba(255, 255, 255, .18),
+    inset -1px 0 0 rgba(6, 14, 30, .3),
+    0 18px 40px -12px rgba(3, 14, 40, .55);
+  transform-style: preserve-3d;
   transition: transform .18s ease-out, border-color .3s ease, box-shadow .3s ease;
   will-change: transform;
 }
 .card.card-pulse { animation: cardPulse .65s var(--ease-out); }
-.card.card-confirmed { border-color: #4ADE80; }
-.card-shine { position: absolute; inset: 0; pointer-events: none; transition: opacity .2s; }
+.card.card-confirmed {
+  border-color: rgba(74, 222, 128, .9);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .6),
+    inset 0 -1px 0 rgba(6, 14, 30, .45),
+    0 0 0 1px rgba(74, 222, 128, .35),
+    0 18px 40px -12px rgba(3, 14, 40, .55);
+}
 
+/* Gravure de fond : monogrammes, circuits et guilloche */
+.card-engraving {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  color: rgba(226, 238, 255, .32); opacity: .7; pointer-events: none;
+  transform: translateZ(1px);
+}
+.card-guilloche { opacity: .75; }
+.card-watermark { fill: rgba(235, 244, 255, .1); stroke: none; }
+.card-shine {
+  position: absolute; inset: 0; pointer-events: none; transition: opacity .2s;
+  transform: translateZ(2px);
+}
+
+.card-top, .card-identity, .card-foot { position: relative; z-index: 2; transform: translateZ(22px); }
 .card-top { display: flex; justify-content: space-between; align-items: center; gap: 1rem; font-size: .82rem; font-weight: 600; }
 .card-brand { display: inline-flex; align-items: center; gap: .45rem; }
 .card-school {
   font-size: .72rem; letter-spacing: .08em; padding: .15rem .5rem; border-radius: 4px;
-  background: rgba(255, 255, 255, .14);
+  background: rgba(8, 20, 45, .26); border: 1px solid rgba(255, 255, 255, .24);
 }
 .card-name {
   font-family: var(--font-display); font-weight: 700; font-size: 1.65rem; line-height: 1.12;
@@ -197,17 +227,20 @@ h1, h2 { font-family: var(--font-display); text-wrap: balance; margin: 0; }
 .card-foot { margin-top: auto; display: flex; flex-direction: column; gap: .75rem; }
 .card-tags { display: flex; flex-wrap: wrap; gap: .38rem; }
 .tag {
-  font-size: .74rem; font-weight: 500; background: rgba(255, 255, 255, .12);
-  border: 1px solid var(--card-line); border-radius: 5px; padding: .14rem .52rem;
+  font-size: .74rem; font-weight: 500; background: rgba(8, 20, 45, .26);
+  border: 1px solid rgba(255, 255, 255, .3); border-radius: 5px; padding: .14rem .52rem;
 }
 .tag-pop { animation: popIn .32s var(--ease-spring) forwards; }
 .card-meta-row {
   display: flex; justify-content: space-between; align-items: center; gap: .5rem;
-  padding-top: .55rem; border-top: 1px solid rgba(255, 255, 255, .16);
+  padding-top: .55rem; border-top: 1px solid rgba(255, 255, 255, .3);
 }
 .card-status { font-size: .78rem; color: var(--card-muted); margin: 0; }
-.card-id { font-family: monospace; font-size: .75rem; color: var(--card-muted); }
-.ph { color: var(--card-muted); opacity: .82; }
+.card-id { font-family: monospace; font-size: .75rem; color: var(--card-muted); white-space: nowrap; }
+.card-top, .card-name, .card-classe, .card-status, .card-id, .tag {
+  text-shadow: 0 1px 2px rgba(2, 6, 16, .62);
+}
+.ph { color: rgba(226, 236, 252, .82); opacity: .9; text-shadow: 0 1px 2px rgba(2, 6, 16, .7); }
 
 /* Barre de progression */
 .progress-box { display: flex; flex-direction: column; gap: .4rem; }
@@ -239,7 +272,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 legend { padding: 0; margin-bottom: .6rem; }
 .hint { color: var(--muted); font-weight: 400; }
 
-input[type="text"], input[type="email"], input[type="password"], input[type="search"], select, textarea {
+input[type="text"], input[type="email"], input[type="password"], input[type="search"], input[type="tel"], select, textarea {
   font: inherit; color: var(--ink); background: var(--field-bg); width: 100%; min-height: 2.9rem;
   border: 1.5px solid var(--field-line); border-radius: 6px; padding: .6rem .85rem;
   transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
@@ -316,6 +349,8 @@ input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-
 .done-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .25rem; }
 .btn-pdf { background: var(--panel); color: #FFFFFF; border: 1px solid rgba(255, 255, 255, .15); }
 .btn-pdf:hover:not(:disabled) { background: #103FA3; }
+.pdf-status { margin: -.5rem 0 0; color: var(--err); font-size: .88rem; font-weight: 500; }
+.pdf-status:empty { display: none; }
 
 .recap { display: grid; grid-template-columns: auto minmax(0, 1fr); margin: .5rem 0 0; border-top: 1px solid var(--line); }
 .recap dt, .recap dd { padding: .7rem 0; border-bottom: 1px solid var(--line); margin: 0; }
@@ -386,6 +421,9 @@ tbody tr:hover { background: var(--surface); }
 tr:last-child td { border-bottom: 0; }
 td.motif { min-width: 16rem; max-width: 28rem; overflow-wrap: anywhere; }
 td.nowrap { white-space: nowrap; }
+td a { color: var(--primary); text-underline-offset: 2px; }
+td a:hover { text-decoration-thickness: 2px; }
+td a:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 2px; }
 td .btn { min-height: 2.3rem; padding: .35rem .8rem; font-size: .84rem; }
 
 .row-enter { opacity: 0; animation: fadeSlideUp .35s var(--ease-out) var(--d, 0ms) forwards; }
