@@ -31,7 +31,7 @@
 </header>
 
 <main>
-  <section class="login stagger" style="--d: 40ms" id="loginView" hidden>
+  <section class="login stagger" style="--d: 40ms" id="loginView">
     <h2>Connexion</h2>
     <p class="intro" style="margin:0;color:var(--muted)">Cet espace est réservé à l'administrateur du club.</p>
     <form id="loginForm" novalidate aria-label="Connexion administrateur">
@@ -157,12 +157,17 @@
       $("loginBtn").disabled = true;
       return;
     }
-    sb.auth.onAuthStateChange(function (evt) {
-      if (evt === "SIGNED_OUT") { rows = []; show("login"); }
-    });
-    var res = await sb.auth.getSession();
-    if (res.data && res.data.session) await enter(res.data.session);
-    else show("login");
+    try {
+      sb.auth.onAuthStateChange(function (evt) {
+        if (evt === "SIGNED_OUT") { rows = []; show("login"); }
+      });
+      var res = await sb.auth.getSession();
+      if (res.data && res.data.session) await enter(res.data.session);
+      else show("login");
+    } catch (error) {
+      show("login");
+      $("loginMsg").textContent = "Impossible de contacter le service de connexion. Vérifiez votre connexion Internet puis rechargez la page.";
+    }
   }
 
   async function enter(session) {
@@ -186,7 +191,18 @@
     $("loginBtn").disabled = true;
     $("loginBtn").textContent = "Connexion…";
     $("loginMsg").textContent = "";
-    var res = await sb.auth.signInWithPassword({ email: email, password: password });
+    var res;
+    try {
+      res = await sb.auth.signInWithPassword({ email: email, password: password });
+    } catch (error) {
+      $("loginMsg").textContent = "La connexion au service a échoué. Vérifiez votre connexion Internet puis réessayez.";
+      $("loginView").classList.remove("shake");
+      void $("loginView").offsetWidth;
+      $("loginView").classList.add("shake");
+      $("loginBtn").disabled = false;
+      $("loginBtn").textContent = "Se connecter";
+      return;
+    }
     $("loginBtn").disabled = false;
     $("loginBtn").textContent = "Se connecter";
     if (res.error || !res.data || !res.data.session) {
