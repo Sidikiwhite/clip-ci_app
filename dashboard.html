@@ -227,15 +227,20 @@
     setStatus("Chargement des demandes…");
     $("tableWrap").hidden = true;
     $("refresh").classList.add("is-spinning");
-    var res = await sb.from("inscriptions").select("*").order("created_at", { ascending: false }).limit(2000);
-    $("refresh").classList.remove("is-spinning");
-    if (res.error) {
-      setStatus("Impossible de charger les demandes. Reconnectez-vous ou réessayez dans un instant.");
-      return;
+    try {
+      var res = await sb.from("inscriptions").select("*").order("created_at", { ascending: false }).limit(2000);
+      if (res.error) {
+        setStatus("Erreur de chargement (" + (res.error.code || "Supabase") + ") : " + res.error.message + " Vérifiez les permissions de lecture dans Supabase.");
+        return;
+      }
+      rows = res.data || [];
+      animateStatsNext = true;
+      render();
+    } catch (error) {
+      setStatus("La lecture des demandes a échoué. Vérifiez la connexion Internet et les permissions Supabase, puis réessayez.");
+    } finally {
+      $("refresh").classList.remove("is-spinning");
     }
-    rows = res.data || [];
-    animateStatsNext = true;
-    render();
   }
 
   function filtered() {
@@ -306,7 +311,7 @@
     body.textContent = "";
 
     if (!rows.length) {
-      setStatus("Aucune demande pour l'instant. Elles apparaîtront ici dès que quelqu'un enverra le formulaire.");
+      setStatus("Aucune demande accessible. La table est peut-être vide; vérifiez aussi que le compte connecté est autorisé par la politique RLS « Lecture administrateur » dans supabase.sql.");
       $("tableWrap").hidden = true;
       return;
     }
