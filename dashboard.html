@@ -49,6 +49,14 @@
   </section>
 
   <section class="dash" id="dashView" hidden>
+    <div class="dash-heading">
+      <div>
+        <p class="dash-eyebrow">Administration</p>
+        <h2>Demandes d’admission</h2>
+      </div>
+      <span class="live-badge"><span class="pulse-dot" aria-hidden="true"></span> Synchronisé</span>
+    </div>
+
     <div class="stats" id="stats"></div>
 
     <div class="toolbar">
@@ -206,7 +214,9 @@
     $("loginBtn").disabled = false;
     $("loginBtn").textContent = "Se connecter";
     if (res.error || !res.data || !res.data.session) {
-      $("loginMsg").textContent = "Adresse e-mail ou mot de passe incorrect.";
+      $("loginMsg").textContent = "Adresse e-mail ou mot de passe incorrect. Vérifiez vos identifiants puis réessayez.";
+      $("password").value = "";
+      $("password").focus();
       $("loginView").classList.remove("shake");
       void $("loginView").offsetWidth;
       $("loginView").classList.add("shake");
